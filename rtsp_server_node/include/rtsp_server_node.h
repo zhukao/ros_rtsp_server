@@ -26,5 +26,6 @@ private:
   void OnSubcallback(img_msgs::msg::H26XFrame::ConstSharedPtr msg);
 
   int dump_frame = 0;
+  std::fstream fout_;
 };
 }

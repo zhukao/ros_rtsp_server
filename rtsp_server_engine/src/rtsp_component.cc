@@ -1,7 +1,6 @@
 #include "rtsp_component.h"
 #include <BasicUsageEnvironment.hh>
 #include <InputFile.hh>
-#include <RTSPServerSupportingHTTPStreaming.hh>
 #include <liveMedia.hh>
 
 #include "OnDemandServerMediaSubsession.hh"

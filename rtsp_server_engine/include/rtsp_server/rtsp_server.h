@@ -17,11 +17,10 @@ namespace rtspcomponent {
 enum class VideoType { H264 = 0, H265 };
 
 struct RtspServerConfig {
-  // url : "rtsp://[ip_]:[port_]/[stream_name]",
+  // url : "rtsp://[ip]:[port_]/[stream_name]",
   // e.g.: "rtsp://127.0.0.1:555/chn0",
   std::string stream_name{"chn0"};
   int port_ = 555;
-  std::string ip_{"127.0.0.1"};
   VideoType video_type_;
 
   uint8_t auth_mode_ = 0;  // 0 for none

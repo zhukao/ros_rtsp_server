@@ -1,5 +1,5 @@
+#include <iomanip>
 #include "rtsp_server_node.h"
-// #include "rtsp_server_config.h"
 
 namespace rtsp_server_node
 {
@@ -7,18 +7,16 @@ RtspServerNode::RtspServerNode(
     const std::string & node_name,
     const NodeOptions & options) : Node(node_name, options) {
   sp_rtsp_config_ = std::make_shared<RtspServerConfig>();
-  std::string video_type{""};
+  std::string video_type{"h264"};
 
   this->declare_parameter("stream_name", sp_rtsp_config_->stream_name);
   this->declare_parameter("port", sp_rtsp_config_->port_);
-  this->declare_parameter("ip", sp_rtsp_config_->ip_);
   this->declare_parameter("video_type", video_type);
   this->declare_parameter("topic_name", topic_name);
   this->declare_parameter("dump_frame", dump_frame);
 
   this->get_parameter("stream_name", sp_rtsp_config_->stream_name);
   this->get_parameter("port", sp_rtsp_config_->port_);
-  this->get_parameter("ip", sp_rtsp_config_->ip_);
   this->get_parameter("video_type", video_type);
   this->get_parameter("topic_name", topic_name);
   this->get_parameter("dump_frame", dump_frame);
@@ -27,7 +25,6 @@ RtspServerNode::RtspServerNode(
     "\n topic_name: " << topic_name
     << "\n stream_name: " << sp_rtsp_config_->stream_name
     << "\n port: " << sp_rtsp_config_->port_
-    << "\n ip: " << sp_rtsp_config_->ip_
     << "\n video_type: " << video_type
     << "\n dump_frame: " << dump_frame
   );
@@ -55,26 +52,67 @@ RtspServerNode::RtspServerNode(
   subscription_ = this->create_subscription<img_msgs::msg::H26XFrame>(
       topic_name, rclcpp::SensorDataQoS(),
       std::bind(&RtspServerNode::OnSubcallback, this, std::placeholders::_1));
+
+      
+  if (1 == dump_frame) {
+    std::string file_name = "dump_stream.264";
+    fout_.open(file_name, std::ios::out | std::ios::binary);
+    RCLCPP_WARN(this->get_logger(), "dump stream to %s", file_name.c_str());
+  }
 }
 
 RtspServerNode::~RtspServerNode() {
+  if (1 == dump_frame && fout_.is_open()) {
+    fout_.close();
+  }
   rtsp_server_->Stop();
 }
 
 void RtspServerNode::OnSubcallback(img_msgs::msg::H26XFrame::ConstSharedPtr msg) {
   if (!msg) return;
 
+  {
+    auto calc_time_ms_laps = [](const struct timespec &time_start, const struct timespec &time_now)
+    {
+      int32_t nRetMs = 0;
+      if (time_now.tv_nsec < time_start.tv_nsec)
+      {
+        nRetMs = (time_now.tv_sec - time_start.tv_sec - 1) * 1000 +
+        (1000000000 + time_now.tv_nsec - time_start.tv_nsec) / 1000000;
+      } else {
+        nRetMs = (time_now.tv_sec - time_start.tv_sec) * 1000 + (time_now.tv_nsec - time_start.tv_nsec) / 1000000;
+      }
+      return nRetMs;
+    };
+    static auto tp_start = std::chrono::system_clock::now();
+    static int count = 0;
+    count++;
+    auto tp_now = std::chrono::system_clock::now();
+    if (tp_now - tp_start >= std::chrono::milliseconds(1000)) {
+      struct timespec time_now = {0, 0};
+      clock_gettime(CLOCK_REALTIME, &time_now);
+      timespec time_start {msg->dts.sec, msg->dts.nanosec};
+      auto delay_ms = calc_time_ms_laps(time_start, time_now);
+      RCLCPP_WARN_STREAM(this->get_logger(),
+        "recved img fps: ["
+        << std::fixed << std::setprecision(2) << count / (std::chrono::duration_cast<std::chrono::milliseconds>(tp_now - tp_start).count() / 1000.0)
+        << "], encoding: " << std::string((const char *)msg->encoding.data())
+        << ", w: " << msg->width
+        << ", h: " << msg->height
+        << ", delay_ms: " << delay_ms
+        );
+      count = 0;
+      tp_start = std::chrono::system_clock::now();
+    }
+  }
+
   rtsp_server_->SendData(msg->data.data(), msg->data.size(),
     static_cast<int>(std::string((const char *)msg->encoding.data()) == std::string("h264") ?
     rtspcomponent::VideoType::H264 : rtspcomponent::VideoType::H265)
     );
 
-  if (1 == dump_frame) {
-    std::string file_name = "dump_stream.264";
-    std::fstream fout(file_name, std::ios::out |
-                      std::ios::binary | std::ios::app);
-    fout.write((const char*)msg->data.data(), msg->data.size());
-    fout.close();
+  if (1 == dump_frame && fout_.is_open()) {
+    fout_.write((const char*)msg->data.data(), msg->data.size());
   }
 }
 

@@ -1,7 +1,6 @@
 #include <iostream>
 #include <BasicUsageEnvironment.hh>
 #include <InputFile.hh>
-#include <RTSPServerSupportingHTTPStreaming.hh>
 #include <liveMedia.hh>
 #include "OnDemandServerMediaSubsession.hh"
 #include <fcntl.h>
@@ -86,7 +85,7 @@ int RtspServer::RTSPServerRun() {
     exit(1);
   }
 
-  std::cout << " rtsp url = " << sp_config_->stream_name << std::endl;
+  // std::cout << " rtsp url = " << sp_config_->stream_name << std::endl;
 
   ServerMediaSession *sms = ServerMediaSession::createNew(
     *env_, sp_config_->stream_name.c_str(), "rtsp server", "session");
@@ -102,7 +101,7 @@ int RtspServer::RTSPServerRun() {
   rtsp_server_->addServerMediaSession(sms);
 
   char *url = rtsp_server_->rtspURL(sms);
-  *env_ << "Play this stream using the URL \n\t" << url << "\n";
+  *env_ << "\n Play this stream using the URL: \n\t" << url << "\n\n";
   delete[] url;
 
   env_->taskScheduler().doEventLoop(&watch_variable_);

@@ -47,21 +47,19 @@ int main(int argc, char **argv) {
     return 0;
   }
 
-  if (argc < 4) {
+  if (argc < 3) {
     RCLCPP_ERROR_STREAM(rclcpp::get_logger("ros_rtsp_server"),
       "usage: ros2 run ros_rtsp_server " << 
       std::string(argv[0]).substr(std::string(argv[0]).find_last_of("/") + 1) <<
-      " <video_path> <ip> <port>");
+      " <video_path> <port>");
     return -1;
   }
 
   std::string video_path{argv[1]};
-  std::string ip{argv[2]};
-  int port = atoi(argv[3]);
+  int port = atoi(argv[2]);
 
   RCLCPP_WARN_STREAM(rclcpp::get_logger("ros_rtsp_server"),
     "\n video_path is " << video_path
-    << "\n ip is " << ip
     << "\n port is " << port
   );
   
@@ -70,7 +68,6 @@ int main(int argc, char **argv) {
   signal(SIGSEGV, signal_handle);
 
   auto sp_rtsp_config = std::make_shared<rtspcomponent::RtspServerConfig>();
-  sp_rtsp_config->ip_ = ip;
   sp_rtsp_config->port_ = port;
 
   std::shared_ptr<MediaProducer> media_producer =

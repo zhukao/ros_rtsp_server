@@ -30,7 +30,15 @@ include_directories(
   ${CMAKE_SYSROOT}/usr/include/groupsock
   ${CMAKE_SYSROOT}/usr/include/UsageEnvironment
   ${CMAKE_SYSROOT}/usr/include/BasicUsageEnvironment
-  ${CMAKE_SYSROOT}/usr/include/jsoncpp
+  ${CMAKE_SYSROOT}/usr/local/include/liveMedia
+  ${CMAKE_SYSROOT}/usr/local/include/groupsock
+  ${CMAKE_SYSROOT}/usr/local/include/UsageEnvironment
+  ${CMAKE_SYSROOT}/usr/local/include/BasicUsageEnvironment
+)
+
+link_directories(
+  ${CMAKE_SYSROOT}/usr/lib
+  ${CMAKE_SYSROOT}/usr/local/lib
 )
 
 file(GLOB PROJECT_SRC
@@ -40,7 +48,7 @@ file(GLOB PROJECT_SRC
     "rtsp_server_engine/src/rtsp_server/rtsp_server.cc"
 )
 
-set(BASE_LIBRARIES pthread jsoncpp
+set(BASE_LIBRARIES pthread
 )
 
 set(LIVE_LIB liveMedia BasicUsageEnvironment groupsock UsageEnvironment)
