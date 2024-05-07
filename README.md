@@ -9,16 +9,20 @@ ros_rtsp_server是基于live555框架开发的ros2功能包，作为rtsp服务�
 
 # 安装依赖
 
-安装编译和运行时依赖[LIVE555 Media Server](http://www.live555.com/mediaServer/)，具体命令如下：
+- 安装ros2开发工具
 
-## Ubuntu 20.04
+`sudo apt install ros-dev-tools`
+
+- 安装编译和运行时依赖[LIVE555 Media Server](http://www.live555.com/mediaServer/)，具体命令如下：
+
+**Ubuntu 20.04**
 
 直接使用apt命令安装：
 ```bash
 sudo apt install liblivemedia-dev
 ```
 
-## Ubuntu 22.04
+**Ubuntu 22.04**
 
 需要下载源码编译后安装：
 ```bash
@@ -105,7 +109,7 @@ ros2 run ros_rtsp_server ros_rtsp_server --ros-args -p topic_name:=/h264 -p vide
 - 编译
   
 ```bash
-git clone https://github.com/zhukao/ros_rtsp_server.git -b develop
+git clone https://github.com/zhukao/ros_rtsp_server.git
 colcon build --packages-up-to ros_rtsp_server
 ```
 
